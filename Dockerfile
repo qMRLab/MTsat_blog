@@ -26,7 +26,7 @@ RUN apt-get update && \
         gnuplot-x11 \
         libopenblas-base \
         octave \
-        liboctave-dev  \
+        liboctave-dev \
         octave-info \
         octave-parallel \
         octave-struct \
