@@ -1,4 +1,4 @@
-%% Get MTR, MTsat and qMT using Bloch simulations
+%% Get MTR, and MTsat using Bloch simulations
 % Simulate complete qMT-SPGR protocol
 Model_qmtSPGR = qmt_spgr;
 Model_qmtSPGR.Prot.MTdata.Mat = [490, 1200]; % 490�, 1.2 kHz
@@ -56,32 +56,36 @@ paramsT1w.T1 = 1/x.R1f*1000; % ms
 T1w = vfa_t1.analytical_solution(paramsT1w);
 
 %%%%%%% NUMBER OF REPETITIONS: BLOCH SIMULATIONS %%%%%%%
-numPulses = [1:1:10, 20:10:90, 100:100:400];
-MTR = zeros(1,length(numPulses));
-MTsat = zeros(1,length(numPulses));
-qMT = zeros(1,length(numPulses));
+numPulses = [1:1:10, 20:10:90, 100:100:500];
+%%%%%%% DIFFERENT F VALUES: NORMAL WM, NAWM, AND LESION %%%%%%%
+F = [0.215,  0.199, 0.112, 0.090];
+MTR = zeros(length(F),length(numPulses));
+MTsat = zeros(length(F),length(numPulses));
+qMT = zeros(length(F),length(numPulses));
 % Get signal using different F and T1w
 for ii=1:length(numPulses)
-    % Set number of pulses
-    Model_qmtSPGR.options.MT_Pulse_NofMTpulses = numPulses(ii);
-    
-    % Signal (MTon is the only changing
-    Signal_qmtSPGR = equation(Model_qmtSPGR, x, Opt);
-    
-    % MTon
-    MT = Signal_qmtSPGR*PDw;
-    qMT(ii) = MT;
-    
-    % MTR calculation
-    MTR(ii) = 100*(PDw - MT)/PDw;
-    
-    % MTsat calculation
-    dataMTsat.PDw = PDw;
-    dataMTsat.T1w = T1w;
-    dataMTsat.MTw = MT;
-    [MTsaturation,~] = MTSAT_exec(dataMTsat, MTParams, PDParams, T1Params, B1Params);
-    MTsat(ii) = MTsaturation;
+    for jj=1:length(F)
+        % Set number of pulses
+        Model_qmtSPGR.options.MT_Pulse_NofMTpulses = numPulses(ii);
+        
+        % Signal (MTon is the only changing
+        x.F = F(jj);
+        Signal_qmtSPGR = equation(Model_qmtSPGR, x, Opt);
+        
+        % MTon
+        MT = Signal_qmtSPGR*PDw;
+        qMT(jj,ii) = MT;
+        
+        % MTR calculation
+        MTR(jj,ii) = 100*(PDw - MT)/PDw;
+        
+        % MTsat calculation
+        dataMTsat.PDw = PDw;
+        dataMTsat.T1w = T1w;
+        dataMTsat.MTw = MT;
+        [MTsaturation,~] = MTSAT_exec(dataMTsat, MTParams, PDParams, T1Params, B1Params);
+        MTsat(jj,ii) = MTsaturation;
+    end
 end
-SmodelBloch(1,:) = MTR;
-SmodelBloch(2,:) = MTsat;
-SmodelBloch(3,:) = qMT;
+MTRBloch = MTR;
+MTsatBloch = MTsat;
