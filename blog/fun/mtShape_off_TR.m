@@ -1,4 +1,4 @@
-%% Get MTon, MToff and T1w varying MT pulse shape and T1 value
+%% Get MTR and MTsat varying MT pulse shape
 % Simulate complete qMT-SPGR protocol
 Model_qmtSPGR = qmt_spgr;
 Model_qmtSPGR.Prot.MTdata.Mat = [490, 1200]; % 490�, 1.2 kHz
@@ -47,16 +47,16 @@ MTParams(1) = 6;
 MTParams(2) = 32;
 B1Params(1) = 1;
 
-% Varying R1f value
-R1f = 1:-0.1:0.2;
+% Four F values (WM, NAWM, LESION I, II
+F = [0.20, 0.15, 0.10, 0.09];
 
 %%%%%%% Effect of the MT pulse shape %%%%%%%
 % MT pulse options
-MTpulses = {'hard','gaussian', 'gausshan', 'sinc','sinchann','sincgauss','fermi'};
+MTpulses = {'gaussian', 'gausshan', 'sinc','sincgauss','fermi'};
 
-% Get signal using different MT pulses
+% Get MTR and MTsat using different MT pulses
 for ii=1:length(MTpulses)
-    for jj=1:length(R1f)
+    for jj=1:length(F)
         % Hard pulse
         if strcmp(MTpulses{ii},'hard')
             Model_qmtSPGR.options.MT_Pulse_Shape = MTpulses{ii};
@@ -90,7 +90,7 @@ for ii=1:length(MTpulses)
         end
         
         % Signal
-        x.R1f = R1f(jj);
+        x.F = F(jj);
         Signal_qmtSPGR = equation(Model_qmtSPGR, x, Opt);
         % PDw - MToff
         paramsPDw.T1 = 1/x.R1f*1000; % ms
@@ -100,16 +100,86 @@ for ii=1:length(MTpulses)
         T1w = vfa_t1.analytical_solution(paramsT1w);
         % MTon
         MT = Signal_qmtSPGR*PDw;
-        qMT(ii,jj) = MT;
-        
+
         % MTR calculation
-        MTR(ii,jj) = 100*(PDw - MT)/PDw;
+        MTR_MT(ii,jj) = 100*(PDw - MT)/PDw;
         
         % MTsat calculation
         dataMTsat.PDw = PDw;
         dataMTsat.T1w = T1w;
         dataMTsat.MTw = MT;
         [MTsaturation,~] = MTSAT_exec(dataMTsat, MTParams, PDParams, T1Params, B1Params);
-        MTsat(ii,jj) = MTsaturation;
+        MTsat_MT(ii,jj) = MTsaturation;
+    end
+end
+
+%%%%%%% Effect of the off-resonence pulse %%%%%%%
+% Off-resonance values
+offResonance = 600:600:6600;
+
+% Get MTR and MTsat using different off-resonance frequencies
+for ii=1:length(offResonance)
+    for jj=1:length(F)
+        % Set params
+        x.F = F(jj);
+        Model_qmtSPGR.Prot.MTdata.Mat = [490, offResonance(ii)];
+        
+        % Signal
+        Signal_qmtSPGR = equation(Model_qmtSPGR, x, Opt);
+        % PDw - MToff
+        paramsPDw.T1 = 1/x.R1f*1000; % ms
+        PDw = vfa_t1.analytical_solution(paramsPDw);
+        % T1w
+        paramsT1w.T1 = 1/x.R1f*1000; % ms
+        T1w = vfa_t1.analytical_solution(paramsT1w);
+        % MTon
+        MT = Signal_qmtSPGR*PDw;
+
+        % MTR calculation
+        MTR_offRes(ii,jj) = 100*(PDw - MT)/PDw;
+        
+        % MTsat calculation
+        dataMTsat.PDw = PDw;
+        dataMTsat.T1w = T1w;
+        dataMTsat.MTw = MT;
+        [MTsaturation,~] = MTSAT_exec(dataMTsat, MTParams, PDParams, T1Params, B1Params);
+        MTsat_offRes(ii,jj) = MTsaturation;
+    end
+end
+
+%%%%%%% Effect of the repetition time TR %%%%%%%
+% TRs
+TRs = 24:2:40;
+
+% Get MTR and MTsat using different TRs
+for ii=1:length(TRs)
+    for jj=1:length(F)
+        % Set params
+        x.F = F(jj);
+        Model_qmtSPGR.Prot.TimingTable.Mat(5) = TRs(ii)/1000;
+        Model_qmtSPGR.Prot.TimingTable.Mat(1) = Model_qmtSPGR.Prot.TimingTable.Mat(5) - Model_qmtSPGR.Prot.TimingTable.Mat(2) - Model_qmtSPGR.Prot.TimingTable.Mat(3) - Model_qmtSPGR.Prot.TimingTable.Mat(4);
+        paramsPDw.TR = TRs(ii);
+        MTparams(2) = TRs(ii);
+
+        % Signal
+        Signal_qmtSPGR = equation(Model_qmtSPGR, x, Opt);
+        % PDw - MToff
+        paramsPDw.T1 = 1/x.R1f*1000; % ms
+        PDw = vfa_t1.analytical_solution(paramsPDw);
+        % T1w
+        paramsT1w.T1 = 1/x.R1f*1000; % ms
+        T1w = vfa_t1.analytical_solution(paramsT1w);
+        % MTon
+        MT = Signal_qmtSPGR*PDw;
+
+        % MTR calculation
+        MTR_TR(ii,jj) = 100*(PDw - MT)/PDw;
+        
+        % MTsat calculation
+        dataMTsat.PDw = PDw;
+        dataMTsat.T1w = T1w;
+        dataMTsat.MTw = MT;
+        [MTsaturation,~] = MTSAT_exec(dataMTsat, MTParams, PDParams, T1Params, B1Params);
+        MTsat_TR(ii,jj) = MTsaturation;
     end
 end
