@@ -1,16 +1,16 @@
-%% Get MTR, MTsat and qMT varying F and T1
+%% Get same MTR and MTsat with different F and R1f values
 % Simulate complete qMT-SPGR protocol
 Model_qmtSPGR = qmt_spgr;
-Model_qmtSPGR.Prot.MTdata.Mat = [490, 1200]; % 490�, 1.2 kHz
+Model_qmtSPGR.Prot.MTdata.Mat = [710, 1200]; % 710 deg, 1.2 kHz
 
-% Timing - TR = 32 ms
-Model_qmtSPGR.Prot.TimingTable.Mat(1) = 0.0120;
+% Timing - TR = 30.3 ms
+Model_qmtSPGR.Prot.TimingTable.Mat(1) = 0.0103;
 Model_qmtSPGR.Prot.TimingTable.Mat(2) = 0.0032;
 Model_qmtSPGR.Prot.TimingTable.Mat(3) = 0.0018;
 Model_qmtSPGR.Prot.TimingTable.Mat(4) = 0.0150;
-Model_qmtSPGR.Prot.TimingTable.Mat(5) = 0.0320;
+Model_qmtSPGR.Prot.TimingTable.Mat(5) = 0.3030; % 30.3 ms
 
-Model_qmtSPGR.options.Readpulsealpha = 6;
+Model_qmtSPGR.options.Readpulsealpha = 7;
 
 % Set simulation options
 Opt.Method = 'Analytical equation';
@@ -30,8 +30,8 @@ x.T2r = 1.3e-05;
 % Timing parameters for vfa_t1.analytical_solution function
 % PDw - MToff
 PDw_Model = vfa_t1;
-paramsPDw.EXC_FA = 6;
-paramsPDw.TR = 32; % ms
+paramsPDw.EXC_FA = 7;
+paramsPDw.TR = 30.3; % ms
 
 % T1w
 T1w_Model = vfa_t1; 
@@ -47,9 +47,9 @@ MTParams(1) = 6;
 MTParams(2) = 32;
 B1Params(1) = 1;
 
-%%%%%%% EFFECTS OF F AND R1F %%%%%%%
-F = 0.05:0.05:0.40;
-R1f = [0.20:0.05:0.50, 0.6:0.1:1.5];
+%%%%%%% VARY OF F AND R1F %%%%%%%
+F = 0.05:0.01:0.30;
+R1f = [0.35:0.01:0.50, 0.6:0.1:1.5];
 
 % Get signal using different F and T1w
 for ii=1:length(F)
@@ -67,16 +67,15 @@ for ii=1:length(F)
         T1w = vfa_t1.analytical_solution(paramsT1w);
         % MTon
         MT = Signal_qmtSPGR*PDw;
-        qMT(ii,jj) = MT;
         
         % MTR calculation
-        MTR(ii,jj) = 100*(PDw - MT)/PDw;
+        eqMTR(ii,jj) = 100*(PDw - MT)/PDw;
         
         % MTsat calculation
         dataMTsat.PDw = PDw;
         dataMTsat.T1w = T1w;
         dataMTsat.MTw = MT;
         [MTsaturation,~] = MTSAT_exec(dataMTsat, MTParams, PDParams, T1Params, B1Params);
-        MTsat(ii,jj) = MTsaturation;
+        eqMTsat(ii,jj) = MTsaturation;
     end
 end
