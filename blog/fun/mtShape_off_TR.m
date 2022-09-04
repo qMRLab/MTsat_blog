@@ -47,12 +47,22 @@ MTParams(1) = 6;
 MTParams(2) = 32;
 B1Params(1) = 1;
 
-% Four F values (WM, NAWM, LESION I, II
-F = [0.20, 0.15, 0.10, 0.09];
+% Input parameters [GM, WM, NAGM, NAWM, L1, L2]
+% Pool size ratio
+F = [0.072, 0.161, 0.068, 0.150, 0.120, 0.094]; % [GM, WM, NAGM, NAWM, L1, L2]
+% Exchange rate (free pool)
+kf = [2.4, 4.3, 2.6, 4.9, 3.6, 2.7];
+kr = kf./F;
+% Relaxation rate (free pool)
+R1f = [0.93, 1.8, 0.89, 1.78, 1.52, 1.26]; % s
+% Tranverse relaxation time (free pool)
+T2f = [0.056, 0.037, 0.062, 0.038, 0.043, 0.052];
+% Tranverse relaxation time (restricted pool)
+T2r = [11.1e-6, 12.3e-6, 9.6e-6, 11.4e-6, 10.3e-6, 10.9e-6];
 
 %%%%%%% Effect of the MT pulse shape %%%%%%%
 % MT pulse options
-MTpulses = {'gaussian', 'gausshan', 'sinc','sincgauss','fermi'};
+MTpulses = {'gaussian', 'sinc','sincgauss','fermi'};
 
 % Get MTR and MTsat using different MT pulses
 for ii=1:length(MTpulses)
@@ -89,8 +99,13 @@ for ii=1:length(MTpulses)
             Model_qmtSPGR.options.MT_Pulse_Shape = MTpulses{ii};
         end
         
-        % Signal
+        % Update input parameteres
         x.F = F(jj);
+        x.kr = kr(jj);
+        x.R1f = R1f(jj);
+        x.T2f = T2f(jj);
+        x.T2r = T2r(jj);
+        % Signal
         Signal_qmtSPGR = equation(Model_qmtSPGR, x, Opt);
         % PDw - MToff
         paramsPDw.T1 = 1/x.R1f*1000; % ms
@@ -120,8 +135,12 @@ offResonance = 600:600:6600;
 % Get MTR and MTsat using different off-resonance frequencies
 for ii=1:length(offResonance)
     for jj=1:length(F)
-        % Set params
+        % Update input parameteres
         x.F = F(jj);
+        x.kr = kr(jj);
+        x.R1f = R1f(jj);
+        x.T2f = T2f(jj);
+        x.T2r = T2r(jj);
         Model_qmtSPGR.Prot.MTdata.Mat = [490, offResonance(ii)];
         
         % Signal
@@ -154,8 +173,12 @@ TRs = 24:2:40;
 % Get MTR and MTsat using different TRs
 for ii=1:length(TRs)
     for jj=1:length(F)
-        % Set params
+        % Update input parameteres
         x.F = F(jj);
+        x.kr = kr(jj);
+        x.R1f = R1f(jj);
+        x.T2f = T2f(jj);
+        x.T2r = T2r(jj);
         Model_qmtSPGR.Prot.TimingTable.Mat(5) = TRs(ii)/1000;
         Model_qmtSPGR.Prot.TimingTable.Mat(1) = Model_qmtSPGR.Prot.TimingTable.Mat(5) - Model_qmtSPGR.Prot.TimingTable.Mat(2) - Model_qmtSPGR.Prot.TimingTable.Mat(3) - Model_qmtSPGR.Prot.TimingTable.Mat(4);
         paramsPDw.TR = TRs(ii);

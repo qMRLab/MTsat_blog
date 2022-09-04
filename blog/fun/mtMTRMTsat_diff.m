@@ -48,8 +48,11 @@ MTParams(2) = 32;
 B1Params(1) = 1;
 
 %%%%%%% VARY F AND R1F %%%%%%%
-F = 0.05:0.01:0.30;
+F = 0.1:0.01:0.30;
 R1f = [0.35:0.01:0.50, 0.6:0.1:1.5];
+
+diffMTR = zeros(length(F),length(R1f));
+diffMTsat = zeros(length(F),length(R1f));
 
 % Get signal using different F and T1w
 for ii=1:length(F)
