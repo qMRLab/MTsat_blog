@@ -61,11 +61,11 @@ RUN cd $HOME/work;\
                 plotly==3.10.0 \
                 flask; \
     python -m sos_notebook.install; \
-    git clone --single-branch -b main https://github.com/jvelazquez-reyes/MTsat_blog.git;  \
+    git clone --single-branch -b mb/mtr https://github.com/jvelazquez-reyes/MTsat_blog.git;  \
     cd MTsat_blog;\
-    git clone https://github.com/neuropoly/qMRLab.git;   \
+    git clone https://github.com/qMRLab/qMRLab.git;   \
     cd qMRLab; \
-    git checkout d15a553f9d93457c3ed59861380852c54458c2b4; \
+    git checkout 9c6dcd39bf5e244a3c50f91e6619f2b623035424; \
     cd ..; \
     chmod -R 777 $HOME/work/MTsat_blog; \
     octave --eval "cd qMRLab; \
