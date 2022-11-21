@@ -65,7 +65,7 @@ RUN cd $HOME/work;\
     cd MTsat_blog;\
     git clone https://github.com/qMRLab/qMRLab.git;   \
     cd qMRLab; \
-    git checkout 9c6dcd39bf5e244a3c50f91e6619f2b623035424; \
+    git checkout 5a620137eb258d9a4d71fd2d123e74ffad573583; \
     cd ..; \
     chmod -R 777 $HOME/work/MTsat_blog; \
     octave --eval "cd qMRLab; \
