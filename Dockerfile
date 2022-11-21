@@ -61,7 +61,7 @@ RUN cd $HOME/work;\
                 plotly==3.10.0 \
                 flask; \
     python -m sos_notebook.install; \
-    git clone --single-branch -b mb/mtr https://github.com/jvelazquez-reyes/MTsat_blog.git;  \
+    git clone --single-branch -b mb/mtr https://github.com/qMRLab/MTsat_blog.git;  \
     cd MTsat_blog;\
     git clone https://github.com/qMRLab/qMRLab.git;   \
     cd qMRLab; \
