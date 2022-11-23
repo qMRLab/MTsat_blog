@@ -35,6 +35,7 @@ RUN apt-get update && \
         octave-optim \
         octave-image \
         python3-dev \
+        ghostscript \
         ttf-dejavu && \
     apt-get clean && \
     apt-get autoremove && \
